@@ -458,3 +458,19 @@ textarea {
   vertical-align: top;
   max-width: 100%;
 }
+
+.flame-graph div {
+  display: flex;
+}
+
+.flame-graph div.flame-row {
+  overflow: hidden;
+  text-wrap: nowrap;
+  min-width: 0px;
+  flex-basis: 0;
+  flex-shrink: 1;
+  flex-grow: 1;
+}
+
+div.flame-cell-unselected {
+}
