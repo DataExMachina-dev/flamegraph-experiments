@@ -36,38 +36,42 @@ const FlameColumn = React.memo(({ column, selected, renderCell, renderUnselected
     selected?.ancestors().find(ancestor => ancestor.data.id === column.data.id));
   const selectedIsMyAncestor = column.ancestors().find(ancestor => ancestor.data.id === selected?.data.id);
 
-  const flexGrow = (iAmSelectedAncestor || selectedIsMyAncestor || !selected) ? column.value! : 0.001;
-  const selfWeight = column.data.weight > 0 && (selectedIsMyAncestor || !selected) ? column.data.weight : 0.001;
+  const flexGrow = (iAmSelectedAncestor || selectedIsMyAncestor || !selected) ? column.value! : 0;
+  const selfWeight = column.data.weight > 0 && (selectedIsMyAncestor || !selected) ? column.data.weight : 0;
+  const gridTemplateColumns = column.children?.map(child => {
+    if (!selected || selected.data.id == column.data.id ||
+      selected.ancestors().find(ancestor => ancestor.data.id === child.data.id)) {
+      return `${child.value!}fr`;
+    }
+    return '0fr';
+  }).join(' ') + ` ${column.data.weight}fr`;
   return (
     <div className="flame-column" style={{
-      flexGrow,
       flexShrink: 1,
       flexBasis: 0,
       display: 'flex',
       flexFlow: 'column',
       minWidth: 0,
       overflowX: 'hidden',
-      transition: 'flex-grow 0.5s ease-in',
     }}>
       <div className="flame-column-root" onClick={() => onSelectedCell(column.data.id)}>
         {renderUnselectedCell({ cell: column.data, isSelected: false, onSelect: onSelectedCell })}
       </div>
-      <div className="flame-column-children">
-        <div className="flame-row" style={{ display: 'flex', flexFlow: 'row' }}>
-          {column.children?.map(cell => {
-            return <FlameColumn
-              key={cell.id}
-              selected={iAmSelectedAncestor ? selected : undefined}
-              column={cell}
-              onSelectedCell={onSelectedCell}
-              renderCell={renderCell}
-              renderUnselectedCell={renderUnselectedCell}
-            />
-          })}
-          {
-            <div className="flame-row-self-weight" style={{ flexGrow: selfWeight, flexShrink: 1, flexBasis: 0, transition: 'flex-grow 0.5s linear' }}></div>
-          }
-        </div>
+      <div className="flame-row" style={{ display: 'grid', gridTemplateColumns, gridTemplateRows: '1fr', gridAutoFlow: 'column', transition: '1s ease-in-out' }}>
+
+        {column.children?.map(cell => {
+          return <FlameColumn
+            key={cell.data.id}
+            selected={iAmSelectedAncestor ? selected : undefined}
+            column={cell}
+            onSelectedCell={onSelectedCell}
+            renderCell={renderCell}
+            renderUnselectedCell={renderUnselectedCell}
+          />
+        })}
+        {
+          <div className="flame-row-self-weight"></div>
+        }
       </div>
     </div>
   );
@@ -95,6 +99,7 @@ export default function FlameGraph({
         renderCell={renderSelectedCell}
         renderUnselectedCell={renderUnselectedCell}
         onSelectedCell={setSelected}
+        key={root.data.id}
       />
     </div>
   )

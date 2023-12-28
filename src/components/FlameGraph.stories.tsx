@@ -18,13 +18,11 @@ export const Other = {
     data:
       parse_folded_stack(pprofString)
     ,
-    selectedCellId: "root;main;a;b;c",
     onCellSelect: (id: string) => { },
     renderSelectedCell: (Component: FlameCellProps) => <div className="flame-cell-selected">
-      {Component.cell.name}
     </div>,
     renderUnselectedCell: (Component: FlameCellProps) => <div className="flame-cell" style={{
-      border: "1px solid black", width: '100%', margin: '0.1px'
+      border: "1px solid black", width: '100%'
     }}>
       {Component.cell.name}
     </div>,
