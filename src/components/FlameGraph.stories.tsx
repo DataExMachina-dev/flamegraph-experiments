@@ -1,8 +1,9 @@
 import React from "react";
 import { Meta, StoryObj } from "@storybook/react";
 import { useArgs } from "@storybook/preview-api";
-import FlameGraph, { FlameGraphProps } from "./FlameGraph";
+import FlameGraph from "./FlameGraph";
 import { parse_folded_stack, StackFrame } from "../lib/folded_stacks";
+import { Tooltip, Typography } from "@mui/material";
 import pprofString from "../../out.pprof.txt?raw";
 
 const meta = {
@@ -20,39 +21,30 @@ function Render() {
     updateArgs({ selectedNodeId: id });
   };
 
-  const renderSelected = (node: StackFrame) => (
+  const renderNode = (node: StackFrame) => (
     <div
-      className="flame-cell-selected"
-      style={{
-        backgroundColor: "white",
-        border: "1px solid red",
-        width: "100%",
-        margin: "0.1px",
-      }}
-    >
-      {node.name}
-    </div>
-  );
-  const renderUnselected = (node: StackFrame) => (
-    <div
-      className="flame-cell"
+      className="flame-cell-unselected"
       style={{
         backgroundColor: "white",
         border: "1px solid black",
+        borderColor: node.id === selectedNodeId ? "red" : "black",
         width: "100%",
         margin: "0.1px",
+        paddingLeft: "2px",
       }}
       onClick={() => setSelected(node.id)}
     >
-      {node.name}
+      <Tooltip title={node.name}>
+        <Typography>{node.name}</Typography>
+      </Tooltip>
     </div>
   );
+
   return (
     <FlameGraph
       data={data}
       selectedNodeId={selectedNodeId}
-      renderSelected={renderSelected}
-      renderUnselected={renderUnselected}
+      renderNode={renderNode}
     />
   );
 }
@@ -61,8 +53,7 @@ export const Other = {
   args: {
     data: parse_folded_stack(pprofString),
     selectedNodeId: "root;main;a;b;c",
-    renderSelected: (node: StackFrame) => <></>,
-    renderUnselected: (node: StackFrame) => <></>,
+    renderNode: (node: StackFrame) => <></>,
   },
   render: Render,
 } satisfies Story;
@@ -153,8 +144,7 @@ export const Default = {
         },
       ],
     },
-    renderSelected: (node: StackFrame) => <></>,
-    renderUnselected: (node: StackFrame) => <></>,
+    renderNode: (node: StackFrame) => <></>,
   },
   render: Render,
 } satisfies Story;

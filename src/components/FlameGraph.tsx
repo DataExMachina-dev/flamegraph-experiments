@@ -1,5 +1,5 @@
-import React, { useState } from "react";
 import { HierarchyNode, hierarchy } from "d3-hierarchy";
+import React from "react";
 
 export type Node<T extends Node<T>> = {
   id: string;
@@ -12,22 +12,19 @@ export type Node<T extends Node<T>> = {
 export type FlameGraphProps<T extends Node<T>> = {
   data: T;
   selectedNodeId?: string;
-  renderUnselected: (_: T) => React.ReactNode;
-  renderSelected: (_: T) => React.ReactNode;
+  renderNode: (_: T) => React.ReactNode;
 };
 
 type ColumnProps<T extends Node<T>> = {
   root: HierarchyNode<T>;
   selected?: HierarchyNode<T>;
-  renderSelected: (_: T) => React.ReactNode;
-  renderUnselected: (_: T) => React.ReactNode;
+  renderNode: (_: T) => React.ReactNode;
 };
 
 function Column<T extends Node<T>>({
   root,
   selected,
-  renderSelected,
-  renderUnselected,
+  renderNode,
 }: ColumnProps<T>) {
   const iAmSelectedAncestor =
     selected?.depth! > root.depth! &&
@@ -41,11 +38,11 @@ function Column<T extends Node<T>>({
   const flexGrow =
     iAmSelectedAncestor || selectedIsMyAncestor || !selected
       ? root.value!
-      : 0.001;
+      : 0.00001;
   const selfWeight =
     root.data.weight > 0 && (selectedIsMyAncestor || !selected)
       ? root.data.weight
-      : 0.001;
+      : 0.00001;
   return (
     <div
       className="flame-column"
@@ -57,14 +54,10 @@ function Column<T extends Node<T>>({
         flexFlow: "column",
         minWidth: 0,
         overflowX: "hidden",
-        transition: "flex-grow 0.5s linear",
+        transition: "flex-grow 0.5s ease-out",
       }}
     >
-      <div className="flame-column-root">
-        {selected && selected.data.id === root.data.id
-          ? renderSelected(root.data)
-          : renderUnselected(root.data)}
-      </div>
+      <div className="flame-column-root">{renderNode(root.data)}</div>
       <div className="flame-column-children">
         <div className="flame-row" style={{ display: "flex", flexFlow: "row" }}>
           {root.children?.map((child, idx) => {
@@ -73,8 +66,7 @@ function Column<T extends Node<T>>({
                 key={`node-${idx}-${child.id}`}
                 root={child}
                 selected={iAmSelectedAncestor ? selected : undefined}
-                renderSelected={renderSelected}
-                renderUnselected={renderUnselected}
+                renderNode={renderNode}
               />
             );
           })}
@@ -86,7 +78,7 @@ function Column<T extends Node<T>>({
                 flexGrow: selfWeight,
                 flexShrink: 1,
                 flexBasis: 0,
-                transition: "flex-grow 0.5s linear",
+                transition: "flex-grow 0.5s ease-out",
               }}
             ></div>
           }
@@ -113,8 +105,7 @@ const MemoizedFlameColumn = React.memo(
 export default function FlameGraph<T extends Node<T>>({
   data,
   selectedNodeId,
-  renderSelected,
-  renderUnselected,
+  renderNode,
 }: FlameGraphProps<T>) {
   const root: HierarchyNode<T> = hierarchy(data, (datum) => datum.children);
   root.sum((datum) => datum.weight);
@@ -127,8 +118,7 @@ export default function FlameGraph<T extends Node<T>>({
         key={root.data.id}
         root={root}
         selected={selected}
-        renderSelected={renderSelected}
-        renderUnselected={renderUnselected}
+        renderNode={renderNode}
       />
     </div>
   );
